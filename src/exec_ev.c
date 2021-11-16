@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <ev.h>
 #include <sutil.h>
-#include <cameo_ev.h>
+#include <clink_ev.h>
 
 #ifndef cprintf
 #define cprintf(fmt, args...) do { \
@@ -98,7 +98,7 @@ void update_wifi_led(Event_ptr_t ev_req)
 	pch = strtok(NULL, ",");
 	size = atoi(pch);
 
-	if (size < 0 && uci_match("cameo.system.rt_mode", "repeater")) {
+	if (size < 0 && uci_match("clink.system.rt_mode", "repeater")) {
 		//when apcli connected or apcli disconnect
 		if (channel > 14) {
 			if (level == -1)
@@ -111,7 +111,7 @@ void update_wifi_led(Event_ptr_t ev_req)
 			else
 				status = UPDATE_2G_RSSI;
 		}
-	} else if (size >= 0 && uci_match("cameo.system.rt_mode", "repeater") != 1) {
+	} else if (size >= 0 && uci_match("clink.system.rt_mode", "repeater") != 1) {
 		//when first client connected or last client disconnect
 		if (channel > 14) {
 			if (size == 1)
@@ -196,8 +196,8 @@ void exec_event(int destPID, Event_ptr_t ev_req)
 		break;
 	case LINK_WAN_ST:
 		if (strncmp(ev_req->payload, "0", 1) == 0) {
-			if (uci_match("cameo.system.rt_mode", "router")) {
-				uci_set_option("cameo.wan.cable_connect", "0");
+			if (uci_match("clink.system.rt_mode", "router")) {
+				uci_set_option("clink.wan.cable_connect", "0");
 				if (!uci_match("network.wan.proto", "static")) {
 					system("ubus call network.interface.wan6 down");
 					system("ubus call network.interface.fake down");
@@ -207,19 +207,19 @@ void exec_event(int destPID, Event_ptr_t ev_req)
 				system("killall -SIGUSR2 udhcpc");
 			cprintf("clink: WAN down.\n");
 		} else if (strncmp(ev_req->payload, "1", 1) == 0) {
-			if (uci_match("cameo.system.rt_mode", "router")) {
-				uci_set_option("cameo.wan.cable_connect", "1");
+			if (uci_match("clink.system.rt_mode", "router")) {
+				uci_set_option("clink.wan.cable_connect", "1");
 				if (!uci_match("network.wan.proto", "static")) {
 					system("ubus call network.interface.wan6 up");
 					system("ubus call network.interface.fake up");
 				}
 			}
-			if ((uci_match("cameo.system.rt_mode", "ap") && uci_match("network.lan.proto", "dhcp")) ||
+			if ((uci_match("clink.system.rt_mode", "ap") && uci_match("network.lan.proto", "dhcp")) ||
 				uci_match("network.wan.proto", "dhcp"))
 				system("killall -SIGUSR1 udhcpc");
 			cprintf("clink: WAN up.\n");
 		} else if (strncmp(ev_req->payload, "2", 1) == 0) {
-			if (uci_match("cameo.system.rt_mode", "repeater"))
+			if (uci_match("clink.system.rt_mode", "repeater"))
 				// support renew dhcp when mesh repeater connect to normal router with ethernet
 				system("touch /tmp/eth_connect");
 		} else
@@ -228,7 +228,7 @@ void exec_event(int destPID, Event_ptr_t ev_req)
 	case RX_WAKE_UP:
 		if (access("/tmp/standby_mode", F_OK) == 0) {
 			char command[40];
-			snprintf(command, sizeof(command), "udpwol br-lan %s &", uci_safe_get("cameo.system.media_mac"));
+			snprintf(command, sizeof(command), "udpwol br-lan %s &", uci_safe_get("clink.system.media_mac"));
 			system(command);
 			uci_free();
 		}

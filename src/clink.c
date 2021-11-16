@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <ev.h>
 #include <sutil.h>
-#include <cameo_ev.h>
+#include <clink_ev.h>
 
 #ifndef cprintf
 #define cprintf(fmt, args...) do { \
